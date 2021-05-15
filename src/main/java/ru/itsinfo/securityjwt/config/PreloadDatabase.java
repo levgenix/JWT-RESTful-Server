@@ -8,6 +8,8 @@ import org.springframework.context.annotation.Configuration;
 import ru.itsinfo.securityjwt.model.TestDto;
 import ru.itsinfo.securityjwt.repository.AppRepository;
 
+import java.util.Random;
+
 @Configuration
 public class PreloadDatabase {
 
@@ -18,6 +20,12 @@ public class PreloadDatabase {
         return args -> {
             log.info("Preloading " + appRepository.save(new TestDto("a@a.com", true)));
             log.info("Preloading " + appRepository.save(new TestDto("b@b.org", false)));
+            log.info("Preloading " + appRepository.save(new TestDto("c@ccc.cn", true)));
+
+            Random random = new Random();
+            for (int i = 0; i < 50 ; i++) {
+                appRepository.save(new TestDto(Long.toHexString(random.nextLong()), random.nextBoolean()));
+            }
         };
     }
 }

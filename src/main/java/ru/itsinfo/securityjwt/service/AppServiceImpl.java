@@ -18,7 +18,8 @@ public class AppServiceImpl implements AppService {
     }
 
     @Override
-    public List<TestDto> findAll() {
-        return appRepository.findAll();
+    public Iterable<TestDto> findAll() {
+        return appRepository.findByEmailStartsWith("2", null);
+//        return appRepository.findAll();
     }
 }

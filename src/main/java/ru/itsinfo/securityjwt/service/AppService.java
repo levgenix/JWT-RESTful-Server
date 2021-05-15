@@ -6,5 +6,5 @@ import java.util.List;
 
 public interface AppService {
 
-    List<TestDto> findAll();
+    Iterable<TestDto> findAll();
 }

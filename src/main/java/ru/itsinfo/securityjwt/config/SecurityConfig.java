@@ -35,6 +35,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
 //        super.configure(auth);
 
+        // TODO: 15.05.2021 auth from database
         auth
             // enable in memory based authentication with a user named
             // "user" and "admin"
