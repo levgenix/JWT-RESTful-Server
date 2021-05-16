@@ -1,10 +1,12 @@
 package ru.itsinfo.securityjwt.service;
 
-import ru.itsinfo.securityjwt.model.TestDto;
+import ru.itsinfo.securityjwt.dto.TestEntityDto;
 
 import java.util.List;
 
 public interface AppService {
 
-    Iterable<TestDto> findAll();
+    List<TestEntityDto> findAll();
+
+    TestEntityDto findById(Long id);
 }
