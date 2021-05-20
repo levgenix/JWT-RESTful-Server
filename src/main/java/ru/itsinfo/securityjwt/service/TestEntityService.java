@@ -4,7 +4,7 @@ import ru.itsinfo.securityjwt.dto.TestEntityDto;
 
 import java.util.List;
 
-public interface AppService {
+public interface TestEntityService {
 
     List<TestEntityDto> findAll();
 

@@ -5,5 +5,5 @@ import ru.itsinfo.securityjwt.model.TestEntity;
 
 // TODO: 15.05.2021 using spring-boot-starter-data-rest
 //@RepositoryRestResource(collectionResourceRel = "testdto", path = "testdto")
-public interface AppRepository extends JpaRepository<TestEntity, Long> {
+public interface TestEntityRepository extends JpaRepository<TestEntity, Long> {
 }

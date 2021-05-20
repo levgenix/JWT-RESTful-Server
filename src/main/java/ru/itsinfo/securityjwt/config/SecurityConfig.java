@@ -1,55 +1,67 @@
 package ru.itsinfo.securityjwt.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import ru.itsinfo.securityjwt.auth.ApplicationUserService;
+import ru.itsinfo.securityjwt.auth.JwtConfig;
+import ru.itsinfo.securityjwt.auth.JwtTokenVerifier;
+import ru.itsinfo.securityjwt.auth.UsernameAndPasswordFilter;
+
+import javax.crypto.SecretKey;
 
 @EnableWebSecurity
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Override
-    public void configure(WebSecurity web) throws Exception {
-        super.configure(web);
+    private final ApplicationUserService applicationUserService;
+    private final SecretKey secretKey;
+    private final JwtConfig jwtConfig;
 
-        web.ignoring()
-        // Spring Security should completely ignore URLs starting with /resources/
-        .antMatchers("/resources/**");
-
-        System.out.println("ignoring: " + web.ignoring());
+    @Autowired
+    public SecurityConfig(ApplicationUserService applicationUserService, SecretKey secretKey, JwtConfig jwtConfig) {
+        this.applicationUserService = applicationUserService;
+        this.secretKey = secretKey;
+        this.jwtConfig = jwtConfig;
     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        super.configure(http);
-
-        //http.authorizeRequests().anyRequest().authenticated().and().formLogin().and().httpBasic();
+        http.csrf().disable()
+                .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                .addFilter(new UsernameAndPasswordFilter(authenticationManager(), jwtConfig, secretKey))
+                .addFilterAfter(new JwtTokenVerifier(secretKey, jwtConfig), UsernameAndPasswordFilter.class)
+                .authorizeRequests()
+                /*.antMatchers("/auth/login", "/login").permitAll()
+                .antMatchers("/api/testentities/**").hasAnyRole("ADMIN", "USER")
+                .antMatchers("/api/admin/**").hasRole("ADMIN")
+                .antMatchers("/**").hasRole("ADMIN")*/
+                .antMatchers("/**").permitAll()
+                .anyRequest()
+                .authenticated();
     }
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-//        super.configure(auth);
-
-        // TODO: 15.05.2021 auth from database
-        auth
-            // enable in memory based authentication with a user named
-            // "user" and "admin"
-            .inMemoryAuthentication()
-                .withUser("user").password("$2y$12$kajGwWdpqNWJd.gbLDdPWuZyksRux/PwLmtCicr0KUDIVWDlFp0f6").roles("USER")
-                .and()
-                .withUser("admin").password("$2y$12$RLx8jsrTNsx045aceILa4eFYsw/LQq1E4bVPMXhS.blFh.SjPOb0m").roles("USER", "ADMIN");
+        auth.authenticationProvider(daoAuthenticationProvider());
     }
 
-    // Expose the UserDetailsService as a Bean
     @Bean
-    @Override
-    public UserDetailsService userDetailsServiceBean() throws Exception {
-        return super.userDetailsServiceBean();
+    public DaoAuthenticationProvider daoAuthenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(applicationUserService);
+        provider.setPasswordEncoder(passwordEncoder());
+        return provider;
     }
 
     @Bean
